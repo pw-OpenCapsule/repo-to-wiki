@@ -1,6 +1,6 @@
 # repo-to-wiki
 
-> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.1.0**）。skill 每次使用前会自检远端最新版，落后会提示更新。
+> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.2.0**）。skill 每次使用前会自检远端最新版，落后会提示更新。
 
 ![repo → skills → lark wiki](assets/hero.png)
 
@@ -35,10 +35,10 @@ npx skills add pw-OpenCapsule/repo-to-wiki --skill repo-to-wiki -g
 | 5 配图 | chatgpt-imagegen（固定提示词） | 手绘示意图（丑风格、内容正确） |
 | 6 沉淀 | lark-doc / lark-wiki + portwind-wiki | 飞书 wiki 多子页 |
 
-## 两种用法
+## 用法（默认 = Workflow 模式）
 
-- **Skill 模式**：自然语言「用 repo-to-wiki 把这个仓库沉淀进 wiki」，agent 跟着 SKILL.md 跑。
-- **Workflow 模式**：用 Claude Code 的 `Workflow` 工具跑 [`skills/repo-to-wiki/repo-to-wiki.workflow.js`](skills/repo-to-wiki/repo-to-wiki.workflow.js)——确定性编排，子页「写内容→出图」并行 pipeline，最后顺序发布。需传 `args: { repoPath, spaceId, parentNodeToken }`。
+- **默认 · Workflow 模式**：被调用时默认走确定性编排——agent 凑齐 `args: { repoPath, spaceId, parentNodeToken }` 后调用 Claude Code 的 `Workflow` 工具跑 [`skills/repo-to-wiki/repo-to-wiki.workflow.js`](skills/repo-to-wiki/repo-to-wiki.workflow.js)，子页「写内容→出图」并行 pipeline、最后顺序发布。
+- **回退 · Skill 模式**：用户明确说「一步步 / 手动 / 边看边来」时，agent 按 SKILL.md 的 6 步自己跑，灵活可插话。
 
 ## 前置依赖
 

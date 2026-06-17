@@ -53,10 +53,13 @@ Core idea: 先拿地图（自动分层+图谱）→ 读主链路（仓内）→ 
 5. **配图** — 用 chatgpt-imagegen 按**固定提示词**出图（见 [references/image-prompt.md](references/image-prompt.md)）：1 张 hero + 每页 1 张概念图。**丑是风格，内容必须对**（正确的框/箭头/短英文标签）。
 6. **沉淀** — 发布中文多子页到飞书 wiki，按 portwind-wiki 路由归到「各项目知识库 / 对应项目组」下。发布机制（建节点、插图置顶、流程图用 mermaid 画板、归档行）见 [references/wiki-publish.md](references/wiki-publish.md)；页面规划见 [references/page-plan.md](references/page-plan.md)。
 
-## 两种用法
+## 用法（默认 = Workflow 模式）
 
-- **Skill 模式（默认）**：装好后说「用 repo-to-wiki 把这个仓库沉淀进 wiki」，agent 读本文件按上面 6 步做。灵活、能随时插话调整。
-- **Workflow 模式（确定性编排）**：用户说「workflow 方式 / 用 workflow / 确定性跑」时——
+> **默认就走 Workflow 模式。** 被调用时，除非用户明确说「一步步 / 手动 / Skill 模式 / 边看边来」，否则**默认**凑齐 args 后调用 `Workflow` 工具跑脚本，**不要**自己手动把链路跑一遍。
+>
+> （opt-in 说明：用户调用本 skill，而本 SKILL 指示你调用 `Workflow` 工具——这本身就满足 Workflow 工具「用户调用了一个其指令要求调用 Workflow 的 skill」的触发条件，可直接调用，无需额外让用户说出 workflow 关键词。）
+
+### Workflow 模式（默认）
 
   > **你的唯一职责是调用 `Workflow` 工具去跑 [`repo-to-wiki.workflow.js`](repo-to-wiki.workflow.js)。不要自己手动跑 understand / domain / 配图 / 发布**——那是 Skill 模式。手动把整条链路跑一遍 = 没启动 workflow 模式（常见错误）。
 
@@ -75,6 +78,10 @@ Core idea: 先拿地图（自动分层+图谱）→ 读主链路（仓内）→ 
   4. 首次跑 workflow，harness 可能弹「multi-agent workflow 用量确认」，接受即可。脚本会起多 agent、确定性并行、最后顺序发布。
 
   也可把脚本放进 `.claude/workflows/` 后 `Workflow({ name: "repo-to-wiki", args:{…} })`。发布会真往飞书写多子页，先确认 `parentNodeToken`。
+
+### Skill 模式（回退 / 显式手动）
+
+仅在以下情况用：Workflow 功能被禁用 / 不可用，或用户明确要「一步步 / 手动 / 边看边来」，或暂时拿不到 wiki 目标节点（先补齐再说）。此时 agent 读本文件按上面 6 步自己做，灵活、能随时插话调整。
 
 ## 增量 / 补充（别重复生成、别建重复页）
 
