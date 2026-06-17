@@ -1,0 +1,61 @@
+---
+name: repo-to-wiki
+description: Use when you need to quickly get familiar with an unfamiliar code repository and turn that understanding into a Chinese multi-page Feishu/Lark wiki doc tree with hand-drawn illustrations — onboarding onto a new project, documenting a codebase for the team, or producing shareable architecture/business docs from a repo.
+---
+
+# repo-to-wiki
+
+## Overview
+
+One skill that chains the team's existing tools to take a repository from「看不懂」to a published, illustrated, Chinese **多子页飞书 wiki 文档树**. It ORCHESTRATES — it does not reimplement — these skills:
+
+`understand-anything` · `codegraph` · `code-search` · `chatgpt-imagegen` · `lark-doc` · `lark-wiki` · `portwind-wiki`
+
+Core idea: 先拿地图（自动分层+图谱）→ 读主链路（仓内）→ 理解上下游（跨仓）→ 补业务 → 配「固定烂图风」插图 → 沉淀成飞书 wiki 多子页。
+
+## When to use
+
+- 接手陌生仓库，要快速吃透并能讲给团队
+- 给一个 codebase 产出架构 / 业务理解文档
+- 把项目理解沉淀进飞书 wiki（多子页，含插图）
+
+## Prerequisites
+
+- 已安装这些 skill：`understand-anything`、`codegraph`（可选）、`code-search`（可选，跨仓）、`chatgpt-imagegen`、`lark-doc`、`lark-wiki`、`portwind-wiki`
+- `lark-cli` 已登录且具备 wiki + docx + 图片上传 scope。粗粒度 `lark-cli auth login --scope "wiki,doc"`；实际需要细粒度 `wiki:node:create`、`docx:document:write_only`、`docs:document.media:upload`、`wiki:space:retrieve`。注意 `auth check --scope wiki` 用的是粗名，可能误报 `ok=false`，以 `auth status` 里的细粒度 scope 为准。
+- `chatgpt-imagegen` 的 web backend（chrome-use 已登录 chatgpt.com）或 codex backend 可用
+
+## Pipeline（按顺序）
+
+1. **拿地图** — 对目标仓跑 `/understand --language zh`（understand-anything）→ `knowledge-graph.json`（分层 + 导览 + 节点/边）。可选 `/understand-dashboard` 看交互页。
+2. **读主链路（仓内）** — 用 codegraph（`codegraph_context` / `codegraph_trace` / `codegraph_callers`）只读地图主线上的文件；没有 `.codegraph/` 就直接读核心文件。结构性问题查图谱比 grep 准。
+3. **理解上下游（跨仓）** — 用 code-search 查跨仓「这接口谁在调、在哪个仓、前后端怎么对」。独立服务可跳过。
+4. **补业务** — 跑 understand-anything 的 domain-analyzer（understand-domain）→ `domain-graph.json`（业务域 + 业务流）。源码理解 ≠ 业务理解，这层补「替谁解决什么生意问题」。
+5. **配图** — 用 chatgpt-imagegen 按**固定提示词**出图（见 [references/image-prompt.md](references/image-prompt.md)）：1 张 hero + 每页 1 张概念图。**丑是风格，内容必须对**（正确的框/箭头/短英文标签）。
+6. **沉淀** — 发布中文多子页到飞书 wiki，按 portwind-wiki 路由归到「各项目知识库 / 对应项目组」下。发布机制（建节点、插图置顶、流程图用 mermaid 画板、归档行）见 [references/wiki-publish.md](references/wiki-publish.md)；页面规划见 [references/page-plan.md](references/page-plan.md)。
+
+## Quick reference
+
+| 步 | 用什么 skill | 产出 |
+|---|---|---|
+| 1 拿地图 | understand-anything `/understand --language zh` | 分层 + 导览 + knowledge-graph.json |
+| 2 读主链路（仓内） | codegraph | 谁调谁、X 怎么流到 Y |
+| 3 理解上下游（跨仓） | code-search | 接口在哪个仓、谁在调、前后端怎么对 |
+| 4 补业务 | domain-analyzer (understand-domain) | 业务域 + 业务流 domain-graph.json |
+| 5 配图 | chatgpt-imagegen（固定提示词） | 手绘示意图（丑风格、内容正确） |
+| 6 沉淀 | lark-doc / lark-wiki + portwind-wiki | 飞书 wiki 多子页 |
+
+## Common mistakes
+
+- `docs +update overwrite` 会把页面标题冲成 `Untitled` —— 整篇重写后**必须** `str_replace "Untitled"` 改回标题。能避免就用增量编辑（`block_insert_after` / `block_replace`），别动不动 overwrite。
+- `docs +media-insert` 把图插在文档**末尾** —— 要置顶得 `block_move_after --block-id <title_id> --src-block-ids <img>`。
+- 流程图别用 ``` 代码块 —— 用 `<whiteboard type="mermaid">`（飞书原生画板，能拖能编）。mermaid 标签里别用引号/斜杠包特殊字符，否则渲染失败。
+- 插图：提示词只写风格会出一堆只好看不解释的装饰画 —— 必须写清「正确的框 + 箭头 + 短英文标签」，见 image-prompt.md。
+- code-search 是**跨仓**、codegraph 是**单仓**，分工别混。
+- `lark-cli wiki +node-list --parent-node-token` 必须同时带 `--space-id`，返回数据在 `nodes` 键（不是 `items`）。
+
+## See also
+
+- [references/image-prompt.md](references/image-prompt.md) — 固定的「烂图风 + 内容正确」生图提示词
+- [references/wiki-publish.md](references/wiki-publish.md) — lark-cli 发布飞书 wiki 的命令配方
+- [references/page-plan.md](references/page-plan.md) — 多子页结构规划
