@@ -34,6 +34,22 @@ Core idea: 先拿地图（自动分层+图谱）→ 读主链路（仓内）→ 
 5. **配图** — 用 chatgpt-imagegen 按**固定提示词**出图（见 [references/image-prompt.md](references/image-prompt.md)）：1 张 hero + 每页 1 张概念图。**丑是风格，内容必须对**（正确的框/箭头/短英文标签）。
 6. **沉淀** — 发布中文多子页到飞书 wiki，按 portwind-wiki 路由归到「各项目知识库 / 对应项目组」下。发布机制（建节点、插图置顶、流程图用 mermaid 画板、归档行）见 [references/wiki-publish.md](references/wiki-publish.md)；页面规划见 [references/page-plan.md](references/page-plan.md)。
 
+## 两种用法
+
+- **Skill 模式（默认）**：装好后说「用 repo-to-wiki 把这个仓库沉淀进 wiki」，agent 读本文件按上面 6 步做。灵活、能随时插话调整。
+- **Workflow 模式（确定性编排）**：用 Claude Code 的 `Workflow` 工具跑 [`repo-to-wiki.workflow.js`](repo-to-wiki.workflow.js)——理解+规划 1 个 agent，然后**每个子页「写内容→出图」并行 pipeline**，最后顺序发布。可复现、压 wall-clock。需要你显式用 workflow（会起多 agent、烧 token）。
+
+  ```
+  Workflow({ scriptPath: "<本目录>/repo-to-wiki.workflow.js", args: {
+    repoPath: "/abs/path/to/repo",
+    spaceId: "<飞书 wiki 空间 id>",
+    parentNodeToken: "<各项目知识库/项目组 node_token>",
+    imageBackend: "codex"   // codex 可并行；web 串行但不耗 Codex 额度
+  }})
+  ```
+
+  也可把脚本放进 `.claude/workflows/` 后 `Workflow({ name: "repo-to-wiki", args:{…} })`。发布阶段会真往飞书写多子页，先确认 parentNodeToken。
+
 ## Quick reference
 
 | 步 | 用什么 skill | 产出 |

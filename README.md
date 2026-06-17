@@ -24,6 +24,11 @@ npx skills add pw-OpenCapsule/repo-to-wiki --skill repo-to-wiki -g
 | 5 配图 | chatgpt-imagegen（固定提示词） | 手绘示意图（丑风格、内容正确） |
 | 6 沉淀 | lark-doc / lark-wiki + portwind-wiki | 飞书 wiki 多子页 |
 
+## 两种用法
+
+- **Skill 模式**：自然语言「用 repo-to-wiki 把这个仓库沉淀进 wiki」，agent 跟着 SKILL.md 跑。
+- **Workflow 模式**：用 Claude Code 的 `Workflow` 工具跑 [`skills/repo-to-wiki/repo-to-wiki.workflow.js`](skills/repo-to-wiki/repo-to-wiki.workflow.js)——确定性编排，子页「写内容→出图」并行 pipeline，最后顺序发布。需传 `args: { repoPath, spaceId, parentNodeToken }`。
+
 ## 前置依赖
 
 - 上述 skill 已安装
