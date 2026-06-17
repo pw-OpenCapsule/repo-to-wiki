@@ -2,6 +2,10 @@
 
 遵循语义化版本。改动必须同步 bump `skills/repo-to-wiki/VERSION` + 这里加一条 + 打 tag。
 
+## 1.2.2 — 2026-06-17
+- **修复 Workflow 模式始终「missing args」**：args 经 Workflow 工具传到脚本时是 JSON 字符串（不是对象），脚本现先 `JSON.parse` 再读字段。这是 workflow 模式之前根本跑不起来的真因（探针实测 typeof args === "string"）。
+- missing-args 报错带上实际收到的内容，便于排查。
+
 ## 1.2.1 — 2026-06-17
 - 更新指引改用官方 `npx skills update -g`（更新全部）；`npx skills add` 降为「只更这个」的备选。
 

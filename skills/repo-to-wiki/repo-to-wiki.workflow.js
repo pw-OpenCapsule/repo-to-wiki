@@ -26,7 +26,10 @@ export const meta = {
 // —— 固定生图风格（烂的是风格，内容必须对）——
 const STYLE = 'Deliberately UGLY, low-resolution, mouse-drawn-in-an-old-MS-Paint look on a plain WHITE background. Use the BIGGEST crude flat COLOR blocks, heavy childish scribble/graffiti crayon fills spilling outside the lines, wobbly shaky hand outlines, jagged one-pixel-at-a-time aliased edges, wonky lopsided shapes — pathetic and absurdly badly drawn, almost-recognizable but everything slightly off and confusing. BUT the CONTENT must be CORRECT: the boxes, arrows, order and short ENGLISH labels must be accurate and readable.'
 
-const cfg = args || {}
+// args 经 Workflow 工具传入时到这里是 JSON 字符串（不是对象），必须先 parse。
+let cfg = args
+if (typeof cfg === 'string') { try { cfg = JSON.parse(cfg) } catch (e) { cfg = {} } }
+cfg = cfg || {}
 const repoPath = cfg.repoPath
 const spaceId = cfg.spaceId
 const parentNode = cfg.parentNodeToken
@@ -37,8 +40,8 @@ const only = Array.isArray(cfg.only) && cfg.only.length ? cfg.only : null
 const force = !!cfg.force
 
 if (!repoPath || !spaceId || !parentNode) {
-  log('缺少必需 args：{ repoPath, spaceId, parentNodeToken }。中止。')
-  return { error: 'missing args: repoPath / spaceId / parentNodeToken' }
+  log('缺少必需 args（repoPath / spaceId / parentNodeToken）。收到：' + JSON.stringify(args))
+  return { error: 'missing args: repoPath / spaceId / parentNodeToken', received: cfg }
 }
 
 const PLAN_SCHEMA = {

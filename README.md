@@ -1,6 +1,6 @@
 # repo-to-wiki
 
-> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.2.1**）。skill 每次使用前会自检远端最新版，落后会提示更新。
+> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.2.2**）。skill 每次使用前会自检远端最新版，落后会提示更新。
 
 ![repo → skills → lark wiki](assets/hero.png)
 
