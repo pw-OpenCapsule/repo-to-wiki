@@ -5,6 +5,25 @@ description: Use when you need to quickly get familiar with an unfamiliar code r
 
 # repo-to-wiki
 
+> 当前版本以本 skill 目录下的 `VERSION` 文件为准。
+
+## 版本与更新自检（每次使用前先做，第 0 步）
+
+开始干活前先比对远端最新版，避免用旧版。`<SKILL_DIR>` = 本 skill 的 Base directory（harness 在加载时会告诉你）。
+
+```bash
+LOCAL=$(cat "<SKILL_DIR>/VERSION" 2>/dev/null || echo "0.0.0")
+REMOTE=$(curl -fsSL https://raw.githubusercontent.com/pw-OpenCapsule/repo-to-wiki/main/skills/repo-to-wiki/VERSION 2>/dev/null | tr -d '[:space:]')
+```
+
+- 拿不到 `REMOTE`（离线 / GitHub 限流）→ 跳过检查，正常继续。
+- `REMOTE` 与 `LOCAL` 相等 → 静默继续。
+- `REMOTE` 比 `LOCAL` 新（按 semver 比较）→ **必须明确提示用户**，例如：
+  > ⚠️ repo-to-wiki 本地 v`$LOCAL` 落后，最新 v`$REMOTE`。建议先更新再用：
+  > `npx skills add pw-OpenCapsule/repo-to-wiki --skill repo-to-wiki -g`
+
+  征得同意后可代为执行该命令更新；**更新后请让用户重新调用本 skill**（当前对话里已加载的还是旧版正文）。用户坚持用旧版可继续，但要说明可能缺新功能/修复。
+
 ## Overview
 
 One skill that chains the team's existing tools to take a repository from「看不懂」to a published, illustrated, Chinese **多子页飞书 wiki 文档树**. It ORCHESTRATES — it does not reimplement — these skills:

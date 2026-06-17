@@ -1,5 +1,7 @@
 # repo-to-wiki
 
+> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.0.0**）。skill 每次使用前会自检远端最新版，落后会提示更新。
+
 一个 agent skill：把一个陌生代码仓库，一条链路跑完，变成一棵**中文多子页飞书 wiki 文档树**（业务理解 + 源码理解 + 手绘插图）。
 
 它**编排**团队已有的 skill，不重复造轮子：
@@ -12,6 +14,13 @@ npx skills add pw-OpenCapsule/repo-to-wiki --skill repo-to-wiki -g
 ```
 
 装好后，在 agent 里说「用 repo-to-wiki 把这个项目沉淀进 wiki」即可。
+
+**更新到最新**：再跑一次上面的 `npx skills add`（安装的是快照、不会自动更新；skill 自检发现落后时也会提示你跑这条）。
+
+## 版本
+
+- 版本号见 `skills/repo-to-wiki/VERSION`，变更记录见 [CHANGELOG.md](CHANGELOG.md)，发版打 git tag `vX.Y.Z`。
+- **维护纪律**：任何改动必须同步 bump `VERSION` + 加 CHANGELOG 一条 + 打 tag，否则自检对不上。
 
 ## 它做什么
 
