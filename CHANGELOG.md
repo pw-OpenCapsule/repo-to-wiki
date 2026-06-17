@@ -2,6 +2,10 @@
 
 遵循语义化版本。改动必须同步 bump `skills/repo-to-wiki/VERSION` + 这里加一条 + 打 tag。
 
+## 1.1.0 — 2026-06-17
+- Workflow 模式说明改强硬：明确「唯一职责是调用 Workflow 工具」、凑齐 3 个 args 后立即调用，别手动跑整条链路（修复「workflow 模式没启动」）。
+- README 配图（assets/hero.png，固定烂图风）。
+
 ## 1.0.0 — 2026-06-17
 首个发布版本。
 - 一条链路：understand-anything → codegraph → code-search → domain-analyzer → chatgpt-imagegen → lark-doc/wiki + portwind-wiki。

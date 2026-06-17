@@ -1,6 +1,8 @@
 # repo-to-wiki
 
-> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.0.0**）。skill 每次使用前会自检远端最新版，落后会提示更新。
+> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.1.0**）。skill 每次使用前会自检远端最新版，落后会提示更新。
+
+![repo → skills → lark wiki](assets/hero.png)
 
 一个 agent skill：把一个陌生代码仓库，一条链路跑完，变成一棵**中文多子页飞书 wiki 文档树**（业务理解 + 源码理解 + 手绘插图）。
 

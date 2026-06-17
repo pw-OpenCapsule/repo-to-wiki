@@ -56,18 +56,25 @@ Core idea: 先拿地图（自动分层+图谱）→ 读主链路（仓内）→ 
 ## 两种用法
 
 - **Skill 模式（默认）**：装好后说「用 repo-to-wiki 把这个仓库沉淀进 wiki」，agent 读本文件按上面 6 步做。灵活、能随时插话调整。
-- **Workflow 模式（确定性编排）**：用 Claude Code 的 `Workflow` 工具跑 [`repo-to-wiki.workflow.js`](repo-to-wiki.workflow.js)——理解+规划 1 个 agent，然后**每个子页「写内容→出图」并行 pipeline**，最后顺序发布。可复现、压 wall-clock。需要你显式用 workflow（会起多 agent、烧 token）。
+- **Workflow 模式（确定性编排）**：用户说「workflow 方式 / 用 workflow / 确定性跑」时——
 
-  ```
-  Workflow({ scriptPath: "<本目录>/repo-to-wiki.workflow.js", args: {
-    repoPath: "/abs/path/to/repo",
-    spaceId: "<飞书 wiki 空间 id>",
-    parentNodeToken: "<各项目知识库/项目组 node_token>",
-    imageBackend: "codex"   // codex 可并行；web 串行但不耗 Codex 额度
-  }})
-  ```
+  > **你的唯一职责是调用 `Workflow` 工具去跑 [`repo-to-wiki.workflow.js`](repo-to-wiki.workflow.js)。不要自己手动跑 understand / domain / 配图 / 发布**——那是 Skill 模式。手动把整条链路跑一遍 = 没启动 workflow 模式（常见错误）。
 
-  也可把脚本放进 `.claude/workflows/` 后 `Workflow({ name: "repo-to-wiki", args:{…} })`。发布阶段会真往飞书写多子页，先确认 parentNodeToken。
+  照这个顺序做，**几步之内就要调用 Workflow 工具**：
+  1. 版本自检（上面第 0 步）。
+  2. 凑齐 3 个必需 args（缺啥问用户，别自己脑补）：
+     - `repoPath`：目标仓库绝对路径（默认当前项目根）。
+     - `parentNodeToken`：发布到哪个父节点。按 portwind-wiki 路由，项目理解归「各项目知识库 / 对应项目组」；不确定就问用户，或 `lark-cli wiki +node-list --space-id <SP> --parent-node-token <各项目知识库>` 里找项目组。
+     - `spaceId`：`lark-cli wiki spaces get_node --params '{"token":"<parent>"}'` 读 `data.node.space_id`（团队空间通常是 `7642234757744496151`）。
+  3. **立即调用**（`<SKILL_DIR>` = 本 skill 的 Base directory）：
+     ```
+     Workflow({ scriptPath: "<SKILL_DIR>/repo-to-wiki.workflow.js", args: {
+       repoPath, spaceId, parentNodeToken, imageBackend: "codex"
+     }})
+     ```
+  4. 首次跑 workflow，harness 可能弹「multi-agent workflow 用量确认」，接受即可。脚本会起多 agent、确定性并行、最后顺序发布。
+
+  也可把脚本放进 `.claude/workflows/` 后 `Workflow({ name: "repo-to-wiki", args:{…} })`。发布会真往飞书写多子页，先确认 `parentNodeToken`。
 
 ## 增量 / 补充（别重复生成、别建重复页）
 
