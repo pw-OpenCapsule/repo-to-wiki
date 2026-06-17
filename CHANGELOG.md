@@ -2,6 +2,9 @@
 
 遵循语义化版本。改动必须同步 bump `skills/repo-to-wiki/VERSION` + 这里加一条 + 打 tag。
 
+## 1.2.1 — 2026-06-17
+- 更新指引改用官方 `npx skills update -g`（更新全部）；`npx skills add` 降为「只更这个」的备选。
+
 ## 1.2.0 — 2026-06-17
 - **默认改为 Workflow 模式**：被调用时默认凑齐 args 后调用 Workflow 工具，除非用户明确要手动/逐步才回退 Skill 模式。Skill 模式降级为显式回退。
 

@@ -1,6 +1,6 @@
 # repo-to-wiki
 
-> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.2.0**）。skill 每次使用前会自检远端最新版，落后会提示更新。
+> 版本以 [`skills/repo-to-wiki/VERSION`](skills/repo-to-wiki/VERSION) 为准（当前 **1.2.1**）。skill 每次使用前会自检远端最新版，落后会提示更新。
 
 ![repo → skills → lark wiki](assets/hero.png)
 
@@ -17,7 +17,7 @@ npx skills add pw-OpenCapsule/repo-to-wiki --skill repo-to-wiki -g
 
 装好后，在 agent 里说「用 repo-to-wiki 把这个项目沉淀进 wiki」即可。
 
-**更新到最新**：再跑一次上面的 `npx skills add`（安装的是快照、不会自动更新；skill 自检发现落后时也会提示你跑这条）。
+**更新到最新**：`npx skills update -g`（更新全部已装 skill）；或重跑上面的 `npx skills add` 只更这个。装的是快照、不会自动更新；skill 每次使用前自检发现落后也会提示。
 
 ## 版本
 

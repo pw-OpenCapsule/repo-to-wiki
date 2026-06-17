@@ -20,9 +20,9 @@ REMOTE=$(curl -fsSL https://raw.githubusercontent.com/pw-OpenCapsule/repo-to-wik
 - `REMOTE` 与 `LOCAL` 相等 → 静默继续。
 - `REMOTE` 比 `LOCAL` 新（按 semver 比较）→ **必须明确提示用户**，例如：
   > ⚠️ repo-to-wiki 本地 v`$LOCAL` 落后，最新 v`$REMOTE`。建议先更新再用：
-  > `npx skills add pw-OpenCapsule/repo-to-wiki --skill repo-to-wiki -g`
+  > `npx skills update -g`（更新全部已装 skill）；只更这个用 `npx skills add pw-OpenCapsule/repo-to-wiki --skill repo-to-wiki -g`。
 
-  征得同意后可代为执行该命令更新；**更新后请让用户重新调用本 skill**（当前对话里已加载的还是旧版正文）。用户坚持用旧版可继续，但要说明可能缺新功能/修复。
+  征得同意后可代为执行更新；**更新后请让用户重新调用本 skill**（当前对话里已加载的还是旧版正文）。用户坚持用旧版可继续，但要说明可能缺新功能/修复。
 
 ## Overview
 
