@@ -50,6 +50,18 @@ Core idea: 先拿地图（自动分层+图谱）→ 读主链路（仓内）→ 
 
   也可把脚本放进 `.claude/workflows/` 后 `Workflow({ name: "repo-to-wiki", args:{…} })`。发布阶段会真往飞书写多子页，先确认 parentNodeToken。
 
+## 增量 / 补充（别重复生成、别建重复页）
+
+重跑或只想补几页时，**默认增量、幂等**，不要从头重做：
+
+- **拿地图**：understand-anything 本身增量（git commit hash + fingerprints）——同 commit 自动跳过/只重分析改动文件，重跑很便宜，放心跑。
+- **配图**：图已存在就**跳过**（`chatgpt-imagegen -o` 会覆盖，所以先 `test -f` 判断），只有改了内容或 `force` 才重生成。
+- **发布（关键）**：**先查后建**。发布前 `lark-cli wiki +node-list --space-id <SP> --parent-node-token <P>`（数据在 `data.nodes`）查父/索引节点下是否已有同标题页：
+  - 有 → **更新**该页（block 级增量编辑，**别用 overwrite**，它会把标题冲成 Untitled），图只在重生成时替换。
+  - 没有 → 才 `+node-create`。
+  - **绝不无脑 node-create**，否则会建出一整棵重复子页树。
+- **只补某几页**：Workflow 传 `args.only: ["02-redirect-flow", ...]`（索引页自动保留用于挂子页+更新目录）；Skill 模式直接说「只补 X、Y 页，其它别动」。`force:true` 才强制重做已存在的图/正文。
+
 ## Quick reference
 
 | 步 | 用什么 skill | 产出 |

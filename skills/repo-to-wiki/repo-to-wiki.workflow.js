@@ -32,6 +32,9 @@ const spaceId = cfg.spaceId
 const parentNode = cfg.parentNodeToken
 const imagegen = cfg.imagegen || '~/.claude/skills/chatgpt-imagegen/chatgpt-imagegen'
 const backend = cfg.imageBackend || 'codex'
+// 增量控制：only=只处理这些 page key（补充模式）；force=即使已存在也重做（图/正文）
+const only = Array.isArray(cfg.only) && cfg.only.length ? cfg.only : null
+const force = !!cfg.force
 
 if (!repoPath || !spaceId || !parentNode) {
   log('缺少必需 args：{ repoPath, spaceId, parentNodeToken }。中止。')
@@ -79,10 +82,14 @@ if (!plan || !plan.pages || !plan.pages.length) {
 }
 log(`规划完成：${plan.projectName} · ${plan.pages.length} 页`)
 
+// 补充模式：只处理 only 指定的页（索引页始终保留，用于 find-or-create + 目录更新）
+const targetPages = only ? plan.pages.filter((p) => p.isIndex || only.includes(p.key)) : plan.pages
+if (only) log(`补充模式：只处理 ${targetPages.map((p) => p.key).join(', ')}（其余页不动）`)
+
 // —— 2+3. 每页：写正文 -> 出图（pipeline，各页独立流动，无 barrier）——
 phase('写子页')
 const pages = await pipeline(
-  plan.pages,
+  targetPages,
   // stage 1：写这一页的中文 markdown 正文
   (p) =>
     agent(
@@ -98,11 +105,12 @@ const pages = await pipeline(
   // stage 2：用 chatgpt-imagegen 出固定烂图风的概念图（内容正确）
   (prev) =>
     agent(
-      `用 chatgpt-imagegen 出一张「${prev.title}」的概念图，内容要对、风格要烂。\n` +
-      `运行（短英文标签，结构要准）：\n` +
+      `给「${prev.title}」准备概念图，内容要对、风格要烂。目标文件：${repoPath}/.understand-anything/wiki-assets/wf-${prev.key}.png\n` +
+      `先 \`test -f\` 看文件在不在：${force ? '（force=true，无论在不在都重生成）' : '若已存在就【跳过生成】、直接返回该路径（省 quota）。'}\n` +
+      `需要生成时运行（短英文标签，结构要准）：\n` +
       `${imagegen} "${STYLE} Subject: ${prev.diagram || prev.title + ' diagram with correct labeled boxes and arrows'}" ` +
       `-o ${repoPath}/.understand-anything/wiki-assets/wf-${prev.key}.png --size 1536x1024 --backend ${backend} --quiet\n` +
-      `生成后返回 {imagePath}。`,
+      `返回 {imagePath, generated:true|false}。`,
       {
         label: `img:${prev.key}`,
         phase: '配图',
@@ -118,16 +126,17 @@ log(`内容+插图就绪：${ready.length}/${plan.pages.length} 页`)
 phase('发布')
 const published = await agent(
   `把规划好的页面发布成飞书 wiki 多子页，走 lark-wiki / lark-doc skill（全程 --as user）。\n` +
-  `space_id=${spaceId}，父节点=${parentNode}。\n` +
-  `步骤：\n` +
-  `1) 先用 pages 里 isIndex 的那页建「${plan.projectName} 源码理解」索引节点（wiki +node-create --parent-node-token ${parentNode}）。\n` +
-  `2) 其余每页在索引节点下建子节点；正文用 docs +update append --doc-format markdown 写入（obj_token 当 --doc）。\n` +
-  `3) 每页插图：docs +media-insert（落末尾）后 block_move_after 到标题正下方；--file 用相对路径。\n` +
-  `4) 正文里的 \`\`\`mermaid 代码块用 block_replace 换成 <whiteboard type="mermaid">…</whiteboard>。\n` +
-  `5) 索引页目录里把「业务理解」用高亮框置顶；最后把索引页链接回填到各子页/归档。\n` +
-  `坑：overwrite 会把标题冲成 Untitled（别用，用增量编辑）；node-list 要带 --space-id 且数据在 nodes 键。\n` +
-  `页面数据（含 markdown 与 imagePath）：\n${JSON.stringify(ready)}\n` +
-  `返回 {indexUrl, pages:[{title,url}]}。`,
+  `space_id=${spaceId}，父节点=${parentNode}。${only ? '【补充模式】只动下面给的页，其余已有子页不要碰。' : ''}\n` +
+  `**幂等铁律：先查后建，绝不无脑 node-create（否则建出重复子页）。**\n` +
+  `0) 用 \`lark-cli wiki +node-list --as user --space-id ${spaceId} --parent-node-token ${parentNode}\`（数据在 data.nodes）查父节点下是否已有标题=「${plan.projectName} 源码理解」的索引节点：有就复用其 node_token/obj_token，没有才 +node-create。\n` +
+  `1) 对每一页：在索引节点下 +node-list 查是否已有同标题子节点。\n` +
+  `   - 已存在 → **更新**：用增量编辑覆盖正文（block 级 block_replace / 先 block_delete 旧正文块再 append；**不要用 overwrite**，它会把标题冲成 Untitled），图只在 ${force ? 'force=true 时' : '本次重新生成了(generated=true) 或该页还没有图时'} 替换（media-insert 新图→block_move_after 置顶→block_delete 旧图）。\n` +
+  `   - 不存在 → +node-create 建子节点，append markdown 正文，media-insert 图并 block_move_after 置顶。\n` +
+  `2) 正文里的 \`\`\`mermaid 代码块用 block_replace 换成 <whiteboard type="mermaid">…</whiteboard>（标签别带引号/斜杠特殊字符）。\n` +
+  `3) 索引页目录：把本次涉及的子页链接补进目录（已存在的行别重复加），「业务理解」用高亮框置顶。\n` +
+  `坑：node-list 必须带 --space-id；overwrite 会冲标题（被冲了就 str_replace "Untitled" 改回）。\n` +
+  `页面数据（含 markdown 与 imagePath；generated 表示本次是否重新生成了图）：\n${JSON.stringify(ready)}\n` +
+  `返回 {indexUrl, pages:[{title,url,action:"created"|"updated"}]}。`,
   {
     label: 'publish',
     schema: {

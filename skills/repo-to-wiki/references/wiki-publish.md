@@ -18,14 +18,28 @@ lark-cli wiki spaces get_node --params '{"token":"<wiki_token>"}' --as user --fo
 # data.node.space_id / data.node.obj_token（obj_token 才是 docx document_id）
 ```
 
-## 1. 建节点（索引页 + 各子页）
+## 1. 建节点（索引页 + 各子页）—— 先查后建，幂等
+
+**永远先 node-list 查同标题节点，存在就复用、更新；不存在才 create。** 否则重跑会建出重复子页树。
 
 ```bash
-lark-cli wiki +node-create --as user --parent-node-token <PARENT> --title "<标题>" --format json
-# 返回 node_token（wiki 树 token，拼 URL：.../wiki/<node_token>）、obj_token（docx document_id，写正文用）
+# 查父节点下是否已有该标题（数据在 data.nodes；必须带 --space-id）
+exists=$(lark-cli wiki +node-list --as user --space-id <SPACE_ID> --parent-node-token <PARENT> --format json \
+  | jq -r --arg t "<标题>" '.data.nodes[] | select(.title==$t) | .node_token' | head -1)
+
+if [ -n "$exists" ]; then
+  : # 复用 $exists：get_node 拿 obj_token 后走「更新」（block 级增量编辑，别 overwrite）
+else
+  lark-cli wiki +node-create --as user --parent-node-token <PARENT> --title "<标题>" --format json
+  # 返回 node_token（拼 URL）、obj_token（docx document_id，写正文用）
+fi
 ```
 
-先建索引页，再在索引页 node_token 下建各子页。
+先 find-or-create 索引页，再在索引页 node_token 下 find-or-create 各子页。
+
+**补充模式（只加/改几页）**：只对目标页做上面的 find-or-create + 更新，其余已有子页不要碰；索引页目录只补新链接（别重复加行）。
+
+**更新已有页**：用 block 级编辑（`block_replace` 换正文块、或 `block_delete` 旧正文块后 `append` 新正文），图只在重生成时换（见 §7）。**不要用 `overwrite`**（见 §5）。
 
 ## 2. 写正文（Markdown 追加）
 
